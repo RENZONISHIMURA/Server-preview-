@@ -44,21 +44,27 @@ body {
 
 <script>
 const params = new URLSearchParams(window.location.search);
-const inviteUrl = params.get("invite");
+
+// Support BOTH formats
+let inviteUrl = params.get("invite");
+
+// If no invite param, check raw query
+if (!inviteUrl) {
+    const raw = window.location.search.substring(1);
+    if (raw.startsWith("http")) {
+        inviteUrl = raw;
+    }
+}
 
 if (!inviteUrl) {
     document.body.innerHTML = "No invite provided";
     throw new Error("No invite");
 }
 
-// Clean invite code
-let inviteCode = inviteUrl
-    .replace("https://discord.gg/", "")
-    .replace("http://discord.gg/", "")
-    .replace("https://discord.com/invite/", "")
-    .replace("discord.gg/", "");
+// Extract invite code safely
+let inviteCode = inviteUrl.split("/").pop().split("?")[0];
 
-// CORS proxy (temporary solution)
+// Fetch using proxy to avoid CORS
 fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(
     `https://discord.com/api/v10/invites/${inviteCode}?with_counts=true`
 )}`)
@@ -72,26 +78,25 @@ fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(
 
     const guild = data.guild;
 
-    const iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=512`;
+    const iconUrl = guild.icon
+        ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=512`
+        : "https://picsum.photos/200";
+
     const bannerUrl = guild.banner
         ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=1024`
         : "https://picsum.photos/800/300";
 
-    document.getElementById("icon").src = iconUrl;
-    document.getElementById("banner").src = bannerUrl;
+    const icon = document.getElementById("icon");
+    const banner = document.getElementById("banner");
 
-    // Wait for images to load then auto-render as image
-    Promise.all([
-        document.getElementById("icon").decode(),
-        document.getElementById("banner").decode()
-    ]).then(() => {
+    icon.src = iconUrl;
+    banner.src = bannerUrl;
+
+    Promise.all([icon.decode(), banner.decode()]).then(() => {
 
         html2canvas(document.getElementById("preview")).then(canvas => {
-
-            // Replace whole page with just the image
             document.body.innerHTML = "";
             document.body.appendChild(canvas);
-
         });
 
     });
