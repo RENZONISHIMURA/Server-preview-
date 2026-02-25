@@ -1,22 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Discord Server Preview Generator</title>
-
+<title>Server Preview</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    background: transparent;
 }
-
-/* Preview Container */
 .preview {
     width: 600px;
     height: 300px;
@@ -24,17 +16,12 @@ body {
     background: #1e293b;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
 }
-
-/* Banner */
 .banner {
     width: 100%;
     height: 180px;
     object-fit: cover;
 }
-
-/* Icon */
 .icon {
     width: 120px;
     height: 120px;
@@ -46,53 +33,40 @@ body {
     object-fit: cover;
     background: #111;
 }
-
-/* Button */
-button {
-    position: absolute;
-    bottom: 20px;
-    right: 30px;
-    padding: 10px 20px;
-    background: #5865F2;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-button:hover {
-    background: #4752c4;
-}
 </style>
 </head>
-
 <body>
 
 <div class="preview" id="preview">
-    <img id="banner" class="banner" src="" alt="Banner">
-    <img id="icon" class="icon" src="" alt="Icon">
-    <button onclick="downloadImage()">Download .bin</button>
+    <img id="banner" class="banner">
+    <img id="icon" class="icon">
 </div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
-let inviteRaw = params.toString();
+const inviteUrl = params.get("invite");
 
-if (!inviteRaw) {
-    alert("No invite provided.");
+if (!inviteUrl) {
+    document.body.innerHTML = "No invite provided";
+    throw new Error("No invite");
 }
 
-let inviteCode = inviteRaw.replace("https://discord.gg/", "")
-                           .replace("discord.gg/", "")
-                           .replace("https://discord.com/invite/", "");
+// Clean invite code
+let inviteCode = inviteUrl
+    .replace("https://discord.gg/", "")
+    .replace("http://discord.gg/", "")
+    .replace("https://discord.com/invite/", "")
+    .replace("discord.gg/", "");
 
-fetch(`https://discord.com/api/v10/invites/${inviteCode}?with_counts=true`)
+// CORS proxy (temporary solution)
+fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(
+    `https://discord.com/api/v10/invites/${inviteCode}?with_counts=true`
+)}`)
 .then(res => res.json())
 .then(data => {
 
     if (!data.guild) {
-        alert("Invalid Invite");
+        document.body.innerHTML = "Invalid Invite";
         return;
     }
 
@@ -101,32 +75,33 @@ fetch(`https://discord.com/api/v10/invites/${inviteCode}?with_counts=true`)
     const iconUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=512`;
     const bannerUrl = guild.banner
         ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=1024`
-        : "https://images.unsplash.com/photo-1519681393784-d120267933ba";
+        : "https://picsum.photos/800/300";
 
     document.getElementById("icon").src = iconUrl;
     document.getElementById("banner").src = bannerUrl;
 
+    // Wait for images to load then auto-render as image
+    Promise.all([
+        document.getElementById("icon").decode(),
+        document.getElementById("banner").decode()
+    ]).then(() => {
+
+        html2canvas(document.getElementById("preview")).then(canvas => {
+
+            // Replace whole page with just the image
+            document.body.innerHTML = "";
+            document.body.appendChild(canvas);
+
+        });
+
+    });
+
 })
 .catch(err => {
     console.error(err);
-    alert("Error fetching invite data. CORS may block this.");
+    document.body.innerHTML = "Error fetching invite data";
 });
-
-
-function downloadImage() {
-
-    html2canvas(document.getElementById("preview")).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "server-preview.bin";
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    });
-
-}
 </script>
-
-<!-- html2canvas CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </body>
 </html>
