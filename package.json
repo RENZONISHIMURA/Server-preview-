@@ -1,0 +1,26 @@
+{
+  "name": "image-card-api",
+  "version": "1.0.0",
+  "description": "Dynamic user info image generator using Satori and Sharp",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "satori",
+    "sharp",
+    "image",
+    "api",
+    "express",
+    "dynamic-image"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
+    "satori": "^0.10.11",
+    "sharp": "^0.33.4"
+  }
+}
