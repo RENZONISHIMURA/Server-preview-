@@ -1,109 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Server Preview</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<style>
-body {
-    margin: 0;
-    background: transparent;
-}
-.preview {
-    width: 600px;
-    height: 300px;
-    position: relative;
-    background: #1e293b;
-    border-radius: 20px;
-    overflow: hidden;
-}
-.banner {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-}
-.icon {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    position: absolute;
-    bottom: 20px;
-    left: 30px;
-    border: 6px solid #0f172a;
-    object-fit: cover;
-    background: #111;
-}
-</style>
+<title>User Card Test</title>
 </head>
-<body>
 
-<div class="preview" id="preview">
-    <img id="banner" class="banner">
-    <img id="icon" class="icon">
-</div>
+<body style="background:black;color:white;text-align:center">
 
-<script>
-const params = new URLSearchParams(window.location.search);
+<h1>User Card Generator</h1>
 
-// Support BOTH formats
-let inviteUrl = params.get("invite");
+<img src="http://localhost:3000/?id=1" width="600">
 
-// If no invite param, check raw query
-if (!inviteUrl) {
-    const raw = window.location.search.substring(1);
-    if (raw.startsWith("http")) {
-        inviteUrl = raw;
-    }
-}
-
-if (!inviteUrl) {
-    document.body.innerHTML = "No invite provided";
-    throw new Error("No invite");
-}
-
-// Extract invite code safely
-let inviteCode = inviteUrl.split("/").pop().split("?")[0];
-
-// Fetch using proxy to avoid CORS
-fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(
-    `https://discord.com/api/v10/invites/${inviteCode}?with_counts=true`
-)}`)
-.then(res => res.json())
-.then(data => {
-
-    if (!data.guild) {
-        document.body.innerHTML = "Invalid Invite";
-        return;
-    }
-
-    const guild = data.guild;
-
-    const iconUrl = guild.icon
-        ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=512`
-        : "https://picsum.photos/200";
-
-    const bannerUrl = guild.banner
-        ? `https://cdn.discordapp.com/banners/${guild.id}/${guild.banner}.png?size=1024`
-        : "https://picsum.photos/800/300";
-
-    const icon = document.getElementById("icon");
-    const banner = document.getElementById("banner");
-
-    icon.src = iconUrl;
-    banner.src = bannerUrl;
-
-    Promise.all([icon.decode(), banner.decode()]).then(() => {
-
-        html2canvas(document.getElementById("preview")).then(canvas => {
-            document.body.innerHTML = "";
-            document.body.appendChild(canvas);
-        });
-
-    });
-
-})
-.catch(err => {
-    console.error(err);
+</body>
+</html>    console.error(err);
     document.body.innerHTML = "Error fetching invite data";
 });
 </script>
