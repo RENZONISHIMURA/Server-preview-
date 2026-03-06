@@ -1,25 +1,15 @@
 import satori from "satori";
 import sharp from "sharp";
 
-export const config = {
-  runtime: "nodejs"
-};
-
 export default async function handler(req, res) {
 
   try {
 
-    const id = req.query.id || "Unknown";
+    const { id } = req.query;
 
-    /*
-    Example user data
-    Replace with database or API
-    */
+    const userId = id || "Unknown";
 
-    const username = "User";
-    const tag = "Community Member";
-
-    const avatar = `https://cdn.discordapp.com/embed/avatars/${Number(id)%5}.png`;
+    const avatar = `https://cdn.discordapp.com/embed/avatars/${Number(userId)%5}.png`;
 
     const svg = await satori(
       {
@@ -29,7 +19,7 @@ export default async function handler(req, res) {
             width: "900px",
             height: "300px",
             display: "flex",
-            background: "#0b0b0b",
+            background: "#0f0f0f",
             borderRadius: "30px",
             padding: "40px",
             alignItems: "center",
@@ -48,7 +38,7 @@ export default async function handler(req, res) {
                 style: {
                   borderRadius: "50%",
                   marginRight: "40px",
-                  border: "6px solid #00ffa6"
+                  border: "6px solid #22c55e"
                 }
               }
             },
@@ -70,7 +60,7 @@ export default async function handler(req, res) {
                         fontSize: 60,
                         fontWeight: "bold"
                       },
-                      children: username
+                      children: "User Card"
                     }
                   },
 
@@ -81,21 +71,7 @@ export default async function handler(req, res) {
                         fontSize: 28,
                         opacity: 0.7
                       },
-                      children: tag
-                    }
-                  },
-
-                  {
-                    type: "div",
-                    props: {
-                      style: {
-                        marginTop: "20px",
-                        fontSize: 24,
-                        background: "#111",
-                        padding: "10px 20px",
-                        borderRadius: "20px"
-                      },
-                      children: `User ID: ${id}`
+                      children: `User ID: ${userId}`
                     }
                   }
 
